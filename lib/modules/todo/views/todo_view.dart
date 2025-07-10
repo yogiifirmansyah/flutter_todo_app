@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_app/modules/todo/controllers/todo_controller.dart';
-import 'package:flutter_todo_app/modules/todo/views/create_update_todo_view.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -16,7 +15,15 @@ class TodoView extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Get.toNamed('/create-update-todo');
+          Get.toNamed('/create-update-todo', arguments: {'mode': 'create'});
+          // Get.to(
+          //   () => CreateUpdateTodoView(
+          //     onSubmit: (name, time) {
+          //       // Save to Hive or controller
+          //       todoController.addTask(name, time);
+          //     },
+          //   ),
+          // );
         },
         child: Icon(Icons.add_task),
       ),
@@ -28,12 +35,25 @@ class TodoView extends StatelessWidget {
 
             return GestureDetector(
               onTap: () {
-                Get.to(
-                  () => CreateUpdateTodoView(
-                    initialTitle: todo.taskName,
-                    initialDateTime: todo.dateTime,
-                  ),
+                Get.toNamed(
+                  '/create-update-todo',
+                  arguments: {
+                    'mode': 'update',
+                    'index': index,
+                    'taskName': todo.taskName,
+                    'dateTime': todo.dateTime,
+                  },
                 );
+                // Get.to(
+                //   () => CreateUpdateTodoView(
+                //     initialTitle: todo.taskName,
+                //     initialDateTime: todo.dateTime,
+                //     onSubmit: (name, time) {
+                //       // Update logic here
+                //       todoController.updateTask(index, name, time);
+                //     },
+                //   ),
+                // );
               },
               child: Card(
                 margin: EdgeInsets.only(bottom: 8, right: 8, left: 8),
