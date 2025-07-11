@@ -38,6 +38,8 @@ dependencies:
   intl: ^0.20.2
   hive_ce: ^2.11.3
   hive_ce_flutter: ^2.3.1
+  timezone: ^0.10.1
+  flutter_local_notifications: ^19.3.0
 
 dev_dependencies:
   flutter_test:

@@ -13,7 +13,6 @@ class TodoController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // todoLists = myBox.get('TODO_LIST') ?? <TodoModel>[].obs;
 
     // Get data from box, ensure it's List<TodoModel>
     final storedData = myBox.get('TODO_LIST') as List?;
@@ -73,6 +72,9 @@ class TodoController extends GetxController {
   void addTask(String newTaskName, DateTime newDateTime) {
     TodoModel todo = TodoModel(taskName: newTaskName, dateTime: newDateTime);
     todoLists.add(todo);
+
+    todoLists.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    todoLists.refresh();
   }
 
   void updateTask(int index, String newTaskName, DateTime newDateTime) {
@@ -83,6 +85,8 @@ class TodoController extends GetxController {
     );
 
     todoLists[index] = updateTodo;
+    todoLists.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    todoLists.refresh();
   }
 
   void saveToDatabase() {
