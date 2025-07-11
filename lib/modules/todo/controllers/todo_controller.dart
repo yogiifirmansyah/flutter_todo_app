@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_todo_app/modules/todo/models/todo_model.dart';
 import 'package:get/get.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class TodoController extends GetxController {
   final myBox = Hive.box('MY_BOX');
@@ -9,6 +13,9 @@ class TodoController extends GetxController {
 
   final taskEditingController = TextEditingController();
   final selectedDateTime = DateTime.now().obs;
+
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
   void onInit() {
@@ -34,6 +41,38 @@ class TodoController extends GetxController {
   void onClose() {
     taskEditingController.dispose();
     super.onClose();
+  }
+
+  Future<void> scheduleNotification(TodoModel todo) async {
+    final androidDetails = AndroidNotificationDetails(
+      'todo_channel_id',
+      'Todo Notifications',
+      channelDescription: 'Notification for todo tasks',
+      importance: Importance.max,
+      priority: Priority.high,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction('finish_task', 'Finish'),
+        AndroidNotificationAction('edit_task', 'Edit'),
+      ],
+    );
+
+    final notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(),
+    );
+
+    final taskIndex = todoLists.indexOf(todo);
+
+    await notificationsPlugin.zonedSchedule(
+      taskIndex,
+      'Task: ${todo.taskName}',
+      'Due at ${DateFormat('hh:mm a').format(todo.dateTime)}',
+      payload: taskIndex.toString(),
+      tz.TZDateTime.from(todo.dateTime, tz.local),
+      notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dateAndTime,
+    );
   }
 
   void pickDateTime(BuildContext context) async {
@@ -75,6 +114,8 @@ class TodoController extends GetxController {
 
     todoLists.sort((a, b) => a.dateTime.compareTo(b.dateTime));
     todoLists.refresh();
+
+    scheduleNotification(todo);
   }
 
   void updateTask(int index, String newTaskName, DateTime newDateTime) {
@@ -85,8 +126,11 @@ class TodoController extends GetxController {
     );
 
     todoLists[index] = updateTodo;
+
     todoLists.sort((a, b) => a.dateTime.compareTo(b.dateTime));
     todoLists.refresh();
+
+    scheduleNotification(updateTodo);
   }
 
   void saveToDatabase() {
